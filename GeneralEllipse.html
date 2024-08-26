@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>General Ellipse</title>
+</head>
+<body>
+  <canvas id="canvas" width="512" height="512"></canvas>
+  <script>
+ var oldx = 0; var oldy = 0;
+ function drawline(xx1, yy1, xx2, yy2, ctx) {
+  xx1 = Math.floor(xx1); yy1 = Math.floor(yy1); 
+  xx2 = Math.floor(xx2); yy2 = Math.floor(yy2);
+  let ddx = xx2 - xx1; let ddy = yy2 - yy1;
+  let xs = Math.sign(ddx); let ys = Math.sign(ddy);
+  ddx = Math.abs(ddx); ddy = Math.abs(ddy);
+  let xr2 = ddx + ddx; let yr2 = ddy + ddy;
+  let cx = xr2 - ddy; let cy = yr2 - ddx;
+  ctx.fillRect(xx1, yy1, 1, 1); // Draw the pixel
+  while (xx1 !== xx2 || yy1 !== yy2) {
+    if (cx >= 0) { cx -= yr2; xx1 += xs; }
+    if (cy >= 0) { cy -= xr2; yy1 += ys; }
+    cx += xr2; cy += yr2;
+    ctx.fillRect(xx1, yy1, 1, 1); // Draw the pixel
+  }
+  return 0;
+}
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const pi = Math.PI;
+    const ellipsePositions = [];
+
+    function drawEllipse(x, y, w, h, phi, startAngle, endAngle) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      startAngle = startAngle * (pi / 180);
+      endAngle = endAngle * (pi / 180);
+      phi = phi * (pi / 180);
+      let sn = Math.sin(phi);
+      let cs = Math.cos(phi);
+      let theta = startAngle - 0.025; // Initialize the angle slightly before the specified start angle
+      let s, c, dx, dy, px, py;
+
+      while (theta <= endAngle) { // Removed the + 0.05 for endAngle
+        s = Math.sin(theta);
+        c = Math.cos(theta);
+        px = w * c * cs - h * s * sn;
+        py = w * c * sn + h * s * cs;
+        dx = Math.abs(w * s * cs + h * c * sn);
+        dy = Math.abs(w * s * sn - h * c * cs);
+        // Store pixel positions in the array
+        ellipsePositions.push({ x: x + px, y: y + py });
+        if (dx > dy) {
+          theta += 1.0 / dx;
+        } else {
+          theta += 1.0 / dy;
+        }
+      }
+    }
+
+ //   drawEllipse(200, 200, 150, 100, 49, 0, 360); // Adjust the start and end angles
+    drawEllipse(200, 200, 150, 100, 45, 0, 360); // Adjust the start and end angles
+   
+    let frame = 0;
+
+    function drawFrame() {
+
+      if (frame < ellipsePositions.length) {
+        const pixel = ellipsePositions[frame];
+        
+        if (frame === 0)  {
+        oldx = Math.floor(pixel.x); oldy = Math.floor(pixel.y);
+        } // Check if last step need special care.
+          // ctx.fillRect(Math.floor(pixel.x), Math.floor(pixel.y), 1, 1);
+       drawline(oldx,oldy, Math.floor(pixel.x) , Math.floor(pixel.y) ,ctx);
+       oldx = Math.floor(pixel.x); oldy = Math.floor(pixel.y);
+        frame++;
+        requestAnimationFrame(drawFrame);
+      } else {
+        frame = 0;
+        requestAnimationFrame(drawFrame);
+      }
+    }
+    drawFrame(); // Start drawing the ellipse
+  </script>
+</body>
+</html>
