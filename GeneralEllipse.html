@@ -29,7 +29,7 @@
     const drawEllipse = (x, y, w, h, phi, start, end) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       [phi, start, end] = [phi, start, end].map(a => a * (pi / 180));
-      let [sn, cs] = [Math.sin(phi), Math.cos(phi)], theta = start;
+      let [sn, cs] = [Math.sin(phi), Math.cos(phi)], theta = start-0.125;
       while (theta <= end) {
         let [s, c] = [Math.sin(theta), Math.cos(theta)];
         let px = w * c * cs - h * s * sn, py = w * c * sn + h * s * cs;
