@@ -7,5 +7,13 @@ A simple JavaScript implementation for rendering general ellipses pixel-by-pixel
 - **Pixel-by-pixel rendering:** Pixel quality rasterization
 - **Educational:** Ideal for learning 2D graphics and ellipse math
 
+## Known Issues
+
+## Screenshot
+
+Below is a screenshot of code in use:
+
+![Rotated Pixel Ellipse](images/Screenshot.png)
+
 ## Live demo:
 [https://mrsoderman.github.io/GeneralEllipse/](https://mrsoderman.github.io/GeneralEllipse/)
