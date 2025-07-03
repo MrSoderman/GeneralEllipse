@@ -1,0 +1,43 @@
+<!DOCTYPE html<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style> canvas { border: 1px solid black; } </style>
+</head>
+<body>
+    <canvas id="Canvas" width="500" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById('Canvas'); const c = canvas.getContext('2d');
+        const ATX = canvas.width / 2; const ATY = canvas.height / 2;
+ 
+        // Code to draw a pixelperfect and simplified Bresenham circle
+        function TinyCircle(x,y,r){
+        let a=r,b=0,d=-r;while(a>=b){[[a,b],[a,-b],[-a,b],[-a,-b],[b,a],[b,-a],[-b,a],
+        [-b,-a]].forEach(p=>c.fillRect(x+p[0],y+p[1],1,1));b++,d+=b,d>=0&&(a--,d-=a);}}
+
+        // Demo it
+        for(let i=0;i<=30;i++){TinyCircle(ATX,ATY,i*5,100);}
+        // for(let i=0;i<=30;i++){OriginalCircle(ATX,ATY,i*5,100);}
+
+        // Note: This code is based on a two-dimensional coupled harmonic oscillation technique first used in the 1960s,
+        // and it was a common tecnique in the 1980's on 8-bit computers as a clever hack as they struggled with multiplication and trigonometry.
+        // As it turns out, this method does not only save resources but it also produces high-quality results.
+        //
+        // It's even very readable in it's non-compressed version.
+        // The tiny version uses short arrow functions and inline conditionals to stay concise,
+        // but when expanded for readability, you’ll see that my original version below is actually both smaller and easier to understand.
+
+        function OriginalCircle(x,y,r) {
+        let a = r; let b = 0; let d = -r;
+        while (a >= b) {
+            c.fillRect(x+a,y+b,1,1);c.fillRect(x+a,y-b,1,1);
+            c.fillRect(x-a,y+b,1,1);c.fillRect(x-a,y-b,1,1);
+            c.fillRect(x+b,y+a,1,1);c.fillRect(x+b,y-a,1,1);
+            c.fillRect(x-b,y+a,1,1);c.fillRect(x-b,y-a,1,1);
+            b++; d += b;
+            if (d >= 0) {a--; d -= a;}
+        }
+        }
+
+    </script>
+</body>
+<html>
