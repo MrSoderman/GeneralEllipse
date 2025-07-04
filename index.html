@@ -14,9 +14,13 @@
     let oldx = 0, oldy = 0, frame = 0; p = ctx.fillRect.bind(ctx); // Create a macro for plotting pixels via fillrect
 
     // Line Golfing
-    line=(x,y,X,Y)=>{for(a=X-x,b=Y-y,s=a>0?1:-1,t=b>0?1:-1,a=a>0?a:-a,b=b>0?b:-b,e=a-b;;)
-    {p(x,y,1,1);if(x==X&&y==Y)break;r=2*e;r>-b&&(e-=b,x+=s);r<a&&(e+=a,y+=t)}}
+    line=(x,y,X,Y)=>{for(u=X-x,v=Y-y,s=u>0?1:-1,t=v>0?1:-1,e=(u*=s)-(v*=t);
+    p(x,y,1,1),x^X|y^Y;){r=2*e;r>-v&&(e-=v,x+=s);r<u&&(e+=u,y+=t)}} 
 
+    // Circle Golfing
+    circle=(x,y,r)=>{for(a=r,b=0,d=-r;a>=b;b++,d+=b,d>=0&&(d-=--a))for(i=-1;i<2;i+=2)
+    for(j=-1;j<2;j+=2)p(x+i*a,y+j*b,1,1),p(x+i*b,y+j*a,1,1)}
+  
     // Line Alternate
     function altLine(x0, y0, x1, y1) {
       let dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
