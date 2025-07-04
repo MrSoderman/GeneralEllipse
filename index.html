@@ -11,11 +11,11 @@
   <script>
     const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
     const pi = Math.PI, ellipsePositions = [];
-    let oldx = 0, oldy = 0, frame = 0;
+    let oldx = 0, oldy = 0, frame = 0; p = ctx.fillRect.bind(ctx); // Create a macro for plotting pixels via fillrect
 
     // Line Golfing
-    tinyLine=(x,y,X,Y)=>{for(d=X-x,d<0&&(d=-d),D=Y-y,D<0&&(D=-D),s=x<X?1:-1,S=y<Y?1:-1,e=d-D;;)
-    {ctx.fillRect(x,y,1,1);if(x==X&&y==Y)break;E=2*e;E>-D&&(e-=D,x+=s);E<d&&(e+=d,y+=S)}}
+    line=(x,y,X,Y)=>{for(a=X-x,b=Y-y,s=a>0?1:-1,t=b>0?1:-1,a=a>0?a:-a,b=b>0?b:-b,e=a-b;;)
+    {p(x,y,1,1);if(x==X&&y==Y)break;r=2*e;r>-b&&(e-=b,x+=s);r<a&&(e+=a,y+=t)}}
 
     // Line Alternate
     function altLine(x0, y0, x1, y1) {
@@ -60,7 +60,8 @@
     const drawFrame = () => {
       if (frame < ellipsePositions.length) {
         let { x, y } = ellipsePositions[frame];
-        frame ? drawLine(oldx, oldy, x, y) : [oldx, oldy] = [Math.floor(x), Math.floor(y)];
+        // frame ? drawLine(oldx, oldy, x, y) : [oldx, oldy] = [Math.floor(x), Math.floor(y)];
+        frame ? line(Math.floor(oldx), Math.floor(oldy), Math.floor(x), Math.floor(y)) : [oldx, oldy] = [Math.floor(x), Math.floor(y)];
         [oldx, oldy] = [Math.floor(x), Math.floor(y)];
         frame++;
         requestAnimationFrame(drawFrame);

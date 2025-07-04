@@ -7,7 +7,7 @@
     <canvas id="Canvas" width="500" height="500"></canvas>
     <script>
         const canvas = document.getElementById('Canvas'); const c = canvas.getContext('2d');
-        const ATX = canvas.width / 2; const ATY = canvas.height / 2;
+        const ATX = canvas.width / 2; const ATY = canvas.height / 2; p = c.fillRect.bind(c); // Create a macro for plotting pixels via fillrect
  
         // Code to draw a pixelperfect and simplified Bresenham circle
         // function TinyCircle(x,y,r){
@@ -15,11 +15,11 @@
         // [-b,-a]].forEach(p=>c.fillRect(x+p[0],y+p[1],1,1));b++,d+=b,d>=0&&(a--,d-=a);}}
 
          // Cleaned up version that uses for next loops
-        Tiny=(x,y,r)=>{for(a=r,b=0,d=-r;a>=b;b++,d+=b,d>=0&&(d-=--a))for(i=-1;i<2;i+=2)
-        for(j=-1;j<2;j+=2)c.fillRect(x+i*a,y+j*b,1,1),c.fillRect(x+i*b,y+j*a,1,1)}
+        circle=(x,y,r)=>{for(a=r,b=0,d=-r;a>=b;b++,d+=b,d>=0&&(d-=--a))for(i=-1;i<2;i+=2)
+        for(j=-1;j<2;j+=2)p(x+i*a,y+j*b,1,1),p(x+i*b,y+j*a,1,1)}
 
         // Demo it
-        for(let i=0;i<=30;i++){Tiny(ATX,ATY,i*5,100);}
+        for(let i=0;i<=30;i++){circle(ATX,ATY,i*5,100);}
         // for(let i=0;i<=30;i++){OriginalCircle(ATX,ATY,i*5,100);}
 
         // Note: This code is based on a two-dimensional coupled harmonic oscillation technique first used in the 1960s,
