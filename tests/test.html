@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>General Ellipse test</title>
+<style>
+body{background:#111;color:#ddd;font-family:monospace}
+canvas{background:#000;border:1px solid #444;image-rendering:pixelated}
+</style></head><body>
+Rotation <input id="rot" type="range" min="0" max="360" step="0.1" value="0"> <span id="rv">0</span>°
+<br><br> <canvas id="c"></canvas>
+<script>
+const W=160,H=120,P=4
+const c=document.getElementById("c"),ctx=c.getContext("2d")
+c.width=W*P; c.height=H*P
+ctx.imageSmoothingEnabled=false
+
+function px(x,y){ if(x>=0&&y>=0&&x<W&&y<H) ctx.fillRect(x*P,y*P,P,P) }
+
+function ellipse(cx,cy,a,b,ang){
+ let s=Math.sin(ang),c=Math.cos(ang)
+ let A=(c*c)/(a*a)+(s*s)/(b*b)
+ let B=2*c*s*(1/(a*a)-1/(b*b))
+ let C=(s*s)/(a*a)+(c*c)/(b*b)
+
+ let S=1e7,Ai=A*S,Bi=B*S,Ci=C*S,Fi=S
+
+ for(let y=-b*2;y<=b*2;y++){
+  let p=Infinity
+  for(let x=-a*2;x<=a*2;x++){
+   let d=Math.abs(Ai*x*x+Bi*x*y+Ci*y*y-Fi)
+   if(d<p)p=d; else{px(cx+x-1,cy+y);break}
+  }
+  p=Infinity
+  for(let x=a*2;x>=-a*2;x--){
+   let d=Math.abs(Ai*x*x+Bi*x*y+Ci*y*y-Fi)
+   if(d<p)p=d; else{px(cx+x+1,cy+y);break}
+  }
+ }
+ for(let x=-a*2;x<=a*2;x++){
+  let p=Infinity
+  for(let y=-b*2;y<=b*2;y++){
+   let d=Math.abs(Ai*x*x+Bi*x*y+Ci*y*y-Fi)
+   if(d<p)p=d; else{px(cx+x,cy+y-1);break}
+  }
+  p=Infinity
+  for(let y=b*2;y>=-b*2;y--){
+   let d=Math.abs(Ai*x*x+Bi*x*y+Ci*y*y-Fi)
+   if(d<p)p=d; else{px(cx+x,cy+y+1);break}
+  }
+ }
+}
+let a=0
+function frame(){
+ ctx.clearRect(0,0,c.width,c.height)
+ ctx.fillStyle="#0f8"
+ ellipse(W/2|0,H/2|0,50,80,a*Math.PI/180)
+ a=(a+0.1)%360
+ rot.value=a
+ rv.textContent=a.toFixed(1)
+ requestAnimationFrame(frame)
+}
+rot.oninput=()=>a=+rot.value
+requestAnimationFrame(frame)
+</script>
+</body>
+</html>
