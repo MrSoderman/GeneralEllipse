@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rotated Ellipse</title>
+
+<style>
+html,body{
+    margin:0;
+    background:#000;
+    overflow:hidden;
+}
+
+canvas{
+    display:block;
+    margin:auto;
+    background:#000;
+
+    width:800px;
+    height:600px;
+
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+}
+</style>
+</head>
+<body>
+
+<canvas id="c" width="800" height="600"></canvas>
+
+<script>
+ 
+
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d", {
+    alpha: false,
+    antialias: false,
+    desynchronized: false
+});
+ 
+ctx.imageSmoothingEnabled = false;
+
+let mx = 0;
+let my = 0;
+let running = true;
+
+canvas.addEventListener("mousemove",e=>{
+    const r = canvas.getBoundingClientRect();
+
+    mx = (e.clientX-r.left) * canvas.width  / r.width;
+    my = (e.clientY-r.top ) * canvas.height / r.height;
+});
+
+canvas.addEventListener("contextmenu",e=>e.preventDefault());
+
+canvas.addEventListener("mousedown",e=>{
+    if(e.button===2) running=false;
+});
+
+function plot(x,y,r=255,g=255,b=255)
+{
+    ctx.fillStyle=`rgb(${r},${g},${b})`;
+    ctx.fillRect((x|0) * 2 - 512,(y|0) * 2-256,2,2);
+}
+
+//
+// Float32 emulation helper.
+//
+// Old numeric instability is actually closer to float32 behavior than JS doubles.
+//
+function f(v)
+{
+    return Math.fround(v);
+}
+
+function ellipse(iXC,iYC,A,B,angle)
+{
+    //
+    // Original quadrant folding logic preserved.
+    //
+    let xflag;
+    let temp;
+
+    if(angle < Math.PI/2.0)
+    {
+        xflag = 1;
+    }
+    else if(angle > Math.PI/2 && angle < Math.PI)
+    {
+        temp  = angle - Math.PI/2.0;
+        angle = Math.PI/2.0 - temp;
+        xflag = -1;
+    }
+    else if(angle >= Math.PI && angle < Math.PI*1.5)
+    {
+        angle = angle - Math.PI;
+        xflag = 1;
+    }
+    else if(angle >= Math.PI*1.5 && angle < Math.PI*2.0)
+    {
+        angle = angle - Math.PI;
+        temp  = angle - Math.PI/2.0;
+        angle = Math.PI/2.0 - temp;
+        xflag = -1;
+    }
+
+    //
+    // IMPORTANT FIX:
+    //
+    // JS trig is radians.
+    //
+    // So we use radians directly.
+    //
+    let ixa = (Math.cos(angle) * A) | 0;
+    let iya = (Math.sin(angle) * A) | 0;
+
+    let ixb = (Math.cos(angle + Math.PI/2.0) * B) | 0;
+    let iyb = (Math.sin(angle + Math.PI/2.0) * B) | 0;
+
+    //
+    // coefficient setup
+    //
+    let ixa2  = f(ixa*ixa);
+    let iya2  = f(iya*iya);
+
+    let ixb2  = f(ixb*ixb);
+    let iyb2  = f(iyb*iyb);
+
+    let ixaya = f(ixa*iya);
+    let ixbyb = f(ixb*iyb);
+
+    let ila2  = f(ixa2+iya2);
+    let ila4  = f(ila2*ila2);
+
+    let ilb2  = f(ixb2+iyb2);
+    let ilb4  = f(ilb2*ilb2);
+
+    let ia = f(ixa2*ilb4 + ixb2*ila4);
+    let ib = f(ixaya*ilb4 + ixbyb*ila4);
+    let ic = f(iya2*ilb4 + iyb2*ila4);
+    let id = f(ila4*ilb4);
+
+    //
+    // CRITICAL FIX:
+    //
+    // Normalize giant coefficients so
+    // JS precision doesn't collapse.
+    //
+    let m = Math.max(
+        Math.abs(ia),
+        Math.abs(ib),
+        Math.abs(ic),
+        Math.abs(id)
+    );
+
+    //
+    // preserve ratios/signs
+    //
+    if(m > 1e9)
+    {
+        let s = 1e9 / m;
+
+        ia = f(ia * s);
+        ib = f(ib * s);
+        ic = f(ic * s);
+        id = f(id * s);
+    }
+
+    let iX,iY,iDx,iDy;
+    let iSigma;
+    let iXp1,iYm1,iYp1;
+
+    if(iya <= ixa)
+    {
+        iX  = -ixa;
+        iY  = -iya;
+
+        iDx = f(-(ib*ixa + ic*iya));
+        iDy = f( ia*ixa + ib*iya);
+
+        while(iDx <= 0)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iY++;
+
+            iSigma = f(
+                ia*iX*iX +
+                2*ib*iX*iY +
+                ic*iY*iY -
+                id
+            );
+
+            if(iSigma < 0)
+            {
+                iDx = f(iDx - ib);
+                iDy = f(iDy + ia);
+                iX--;
+            }
+
+            iDx = f(iDx + ic);
+            iDy = f(iDy - ib);
+        }
+
+        while(iDx <= iDy)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iY++;
+
+            iXp1 = iX + 1;
+
+            iSigma = f(
+                ia*iXp1*iXp1 +
+                2*ib*iXp1*iY +
+                ic*iY*iY -
+                id
+            );
+
+            if(iSigma >= 0)
+            {
+                iDx = f(iDx + ib);
+                iDy = f(iDy - ia);
+                iX  = iXp1;
+            }
+
+            iDx = f(iDx + ic);
+            iDy = f(iDy - ib);
+        }
+
+        while(iDy >= 0)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iX++;
+
+            iSigma = f(
+                ia*iX*iX +
+                2*ib*iX*iY +
+                ic*iY*iY -
+                id
+            );
+
+            if(iSigma < 0)
+            {
+                iDx = f(iDx + ic);
+                iDy = f(iDy - ib);
+                iY++;
+            }
+
+            iDx = f(iDx + ib);
+            iDy = f(iDy - ia);
+        }
+
+        while(iDy >= -iDx)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iX++;
+
+            iYm1 = iY - 1;
+
+            iSigma = f(
+                ia*iX*iX +
+                2*ib*iX*iYm1 +
+                ic*iYm1*iYm1 -
+                id
+            );
+
+            if(iSigma >= 0)
+            {
+                iDx = f(iDx - ic);
+                iDy = f(iDy + ib);
+                iY  = iYm1;
+            }
+
+            iDx = f(iDx + ib);
+            iDy = f(iDy - ia);
+        }
+
+        while(iY >= iya)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iY--;
+
+            iSigma = f(
+                ia*iX*iX +
+                2*ib*iX*iY +
+                ic*iY*iY -
+                id
+            );
+
+            if(iSigma < 0)
+            {
+                iDx = f(iDx + ib);
+                iDy = f(iDy - ia);
+                iX++;
+            }
+
+            iDx = f(iDx - ic);
+            iDy = f(iDy + ib);
+        }
+    }
+    else
+    {
+        iX  = -ixa;
+        iY  = -iya;
+
+        iDx = f(-(ib*ixa + ic*iya));
+        iDy = f( ia*ixa + ib*iya);
+
+        while(-iDx >= iDy)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iX--;
+
+            iYp1 = iY + 1;
+
+            iSigma = f(
+                ia*iX*iX +
+                2*ib*iX*iYp1 +
+                ic*iYp1*iYp1 -
+                id
+            );
+
+            if(iSigma >= 0)
+            {
+                iDx = f(iDx + ic);
+                iDy = f(iDy - ib);
+                iY  = iYp1;
+            }
+
+            iDx = f(iDx - ib);
+            iDy = f(iDy + ia);
+        }
+
+        while(iDx <= 0)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iY++;
+
+            iSigma = f(
+                ia*iX*iX +
+                2*ib*iX*iY +
+                ic*iY*iY -
+                id
+            );
+
+            if(iSigma < 0)
+            {
+                iDx = f(iDx - ib);
+                iDy = f(iDy + ia);
+                iX--;
+            }
+
+            iDx = f(iDx + ic);
+            iDy = f(iDy - ib);
+        }
+
+        while(iDx <= iDy)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iY++;
+
+            iXp1 = iX + 1;
+
+            iSigma = f(
+                ia*iXp1*iXp1 +
+                2*ib*iXp1*iY +
+                ic*iY*iY -
+                id
+            );
+
+            if(iSigma >= 0)
+            {
+                iDx = f(iDx + ib);
+                iDy = f(iDy - ia);
+                iX  = iXp1;
+            }
+
+            iDx = f(iDx + ic);
+            iDy = f(iDy - ib);
+        }
+
+        while(iDy >= 0)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iX++;
+
+            iSigma = f(
+                ia*iX*iX +
+                2*ib*iX*iY +
+                ic*iY*iY -
+                id
+            );
+
+            if(iSigma < 0)
+            {
+                iDx = f(iDx + ic);
+                iDy = f(iDy - ib);
+                iY++;
+            }
+
+            iDx = f(iDx + ib);
+            iDy = f(iDy - ia);
+        }
+
+        while(iX <= ixa)
+        {
+            plot(iXC+iX*xflag,iYC+iY,0,255,0);
+            plot(iXC-iX*xflag,iYC-iY,0,255,0);
+
+            iX++;
+
+            iYm1 = iY - 1;
+
+            iSigma = f(
+                ia*iX*iX +
+                2*ib*iX*iYm1 +
+                ic*iYm1*iYm1 -
+                id
+            );
+
+            if(iSigma >= 0)
+            {
+                iDx = f(iDx - ic);
+                iDy = f(iDy + ib);
+                iY  = iYm1;
+            }
+
+            iDx = f(iDx + ib);
+            iDy = f(iDy - ia);
+        }
+    }
+}
+
+function frame()
+{
+    if(!running) return;
+
+    ctx.fillStyle="#000";
+    ctx.fillRect(0,0,800,600);
+
+    let xx = mx;
+    let yy = my;
+
+    ellipse(
+        512,
+        384,
+        1 + yy/2.0,
+        200,
+        xx/200.0
+    ); 
+
+    requestAnimationFrame(frame);
+}
+
+frame();
+</script>
+
+</body>
+</html>
