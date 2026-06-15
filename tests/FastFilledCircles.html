@@ -7,7 +7,7 @@
     </style>
 </head>
 <body>
-    <canvas id="canvas" width="512" height="512"></canvas>
+    <canvas id="canvas" width="1140" height="1140"></canvas>
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
@@ -36,7 +36,7 @@
                 y = y + 1;
             }
         }
-        for (let i = 1; i <= 50; i++) {
+        for (let i = 1; i <= 100; i++) {
             let col = (i - 1) % 10;
             let row = Math.floor((i - 1) / 10);
             drawCorrectCircle(0 + col * 110 + 60, row * 110 + 60, i);
