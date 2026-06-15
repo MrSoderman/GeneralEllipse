@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { background: #333; display: flex; flex-direction: column; align-items: center; }
+        canvas { background: black; image-rendering: pixelated; border: 4px solid #fff; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="512" height="512"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        function oldgetRandomColor(step) { return `hsl(${(step * 30) % 360}, 70%, 60%)`; }
+        function getRandomColor(step) { const hue = (step * 137.5 + 45) % 360; return `hsl(${hue}, 80%, 60%)`; }
+
+        function drawCorrectCircle(cx, cy, d) {
+
+            if (d === 2) { ctx.fillStyle = getRandomColor(0); ctx.fillRect(cx - 1, cy - 1, 2, 2); return; }
+
+            let r = d / 2;
+            let x = Math.floor(r);
+            let y = 0;
+            let s = 1 - x;
+            let step = 0;
+            while (y <= x) {
+                let w = (d % 2 === 0) ? (2 * x) : (2 * x + 1);
+                let h = (d % 2 === 0) ? (2 * y) : (2 * y + 1);
+                ctx.fillStyle = getRandomColor(step++); // Setting a unique color for each step for the demo
+                ctx.fillRect(cx - x, cy - y, w, h);
+                ctx.fillRect(cx - y, cy - x, h, w);
+                s = s + 2 * y + 1;
+                if (s > 0) { s = s - 2 * x + 2; x = x - 1; }
+                y = y + 1;
+            }
+        }
+        for (let i = 1; i <= 50; i++) {
+            let col = (i - 1) % 10;
+            let row = Math.floor((i - 1) / 10);
+            drawCorrectCircle(0 + col * 110 + 60, row * 110 + 60, i);
+        }
+    </script>
+</body>
+</html>
