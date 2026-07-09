@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>General Ellipse</title>
+</head>
+
+<body>
+  <canvas id="canvas" width="512" height="512"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+    const pi = Math.PI, ellipsePositions = [];
+    let oldx = 0, oldy = 0, frame = 0; p = ctx.fillRect.bind(ctx); // Create a macro for plotting pixels via fillrect
+
+    // Line Golfing
+    line=(x,y,X,Y)=>{for(u=X-x,v=Y-y,s=u>0?1:-1,t=v>0?1:-1,e=(u*=s)-(v*=t);
+    p(x,y,1,1),x^X|y^Y;){r=2*e;r>-v&&(e-=v,x+=s);r<u&&(e+=u,y+=t)}} 
+
+    // Circle Golfing
+    circle=(x,y,r)=>{for(a=r,b=0,d=-r;a>=b;b++,d+=b,d>=0&&(d-=--a))for(i=-1;i<2;i+=2)
+    for(j=-1;j<2;j+=2)p(x+i*a,y+j*b,1,1),p(x+i*b,y+j*a,1,1)}
+  
+    // Line Alternate
+    function altLine(x0, y0, x1, y1) {
+      let dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
+      let sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+      let err = dx - dy;
+      while (true) {
+        ctx.fillRect(x0,y0,1,1);
+        if (x0 === x1 && y0 === y1) break;
+        let e2 = 2 * err;
+        if (e2 > -dy) { err -= dy; x0 += sx; }
+        if (e2 < dx) { err += dx; y0 += sy; }
+      }
+    }
+
+    // Line Orginal
+    const drawLine = (x1, y1, x2, y2) => {
+      [x1, y1, x2, y2] = [x1, y1, x2, y2].map(Math.floor);
+      let [dx, dy] = [x2 - x1, y2 - y1].map(Math.abs);
+      let [xs, ys] = [Math.sign(x2 - x1), Math.sign(y2 - y1)];
+      let [dx2, dy2] = [dx * 2, dy * 2], [cx, cy] = [dx2 - dy, dy2 - dx];
+      while (x1 !== x2 || y1 !== y2) {
+        ctx.fillRect(x1, y1, 1, 1);
+        if (cx >= 0) (cx -= dy2, x1 += xs);
+        if (cy >= 0) (cy -= dx2, y1 += ys);
+        cx += dx2; cy += dy2;
+      }
+    };
+
+    const drawEllipse = (x, y, w, h, phi, start, end) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      [phi, start, end] = [phi, start, end].map(a => a * (pi / 180));
+      let [sn, cs] = [Math.sin(phi), Math.cos(phi)], theta = start-0.125;
+      while (theta <= end) {
+        let [s, c] = [Math.sin(theta), Math.cos(theta)];
+        let px = w * c * cs - h * s * sn, py = w * c * sn + h * s * cs;
+        ellipsePositions.push({ x: x + px, y: y + py });
+        theta += 1 / Math.max(Math.abs(w * s * cs + h * c * sn), Math.abs(w * s * sn - h * c * cs));
+      }
+    };
+
+    const drawFrame = () => {
+      if (frame < ellipsePositions.length) {
+        let { x, y } = ellipsePositions[frame];
+        // frame ? drawLine(oldx, oldy, x, y) : [oldx, oldy] = [Math.floor(x), Math.floor(y)];
+        frame ? line(Math.floor(oldx), Math.floor(oldy), Math.floor(x), Math.floor(y)) : [oldx, oldy] = [Math.floor(x), Math.floor(y)];
+        [oldx, oldy] = [Math.floor(x), Math.floor(y)];
+        frame++;
+        requestAnimationFrame(drawFrame);
+      } else frame = 0, requestAnimationFrame(drawFrame);
+    };
+
+    drawEllipse(200, 200, 150, 100, 45, 0, 360);
+    drawFrame();
+  </script>
+  
+</body>
+
+</html>
